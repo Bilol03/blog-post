@@ -41,9 +41,33 @@ def make_post():
         return redirect('/')
     return render_template("make-post.html", forms=blog_form)
 # TODO: edit_post() to change an existing blog post
+@main.route('/edit-post/<int:id>', methods=["POST", "GET"])
+def edit_post(id):
+    data = db.get_or_404(BlogPost, id)
+    blog_form = NewPost(
+        title  = data.title,
+        subtitle = data.subtitle,
+        name = data.author,
+        img_url =  data.img_url,
+        body = data.body
+    )
+    if request.method == "POST":
+        data.title = request.form.get('title')
+        data.subtitle = request.form.get('subtitle')
+        data.author = request.form.get('name')
+        data.img_url = request.form.get('img_url')
+        data.body = request.form.get('body')
+        db.session.commit()
+        return redirect(f'/post/{id}')
+    
+    
+    return render_template("make-post.html", forms=blog_form, is_edit=True)
 
 # TODO: delete_post() to remove a blog post from the database
-
+@main.route("/delete-post/<int:id>")
+def delete_post(id):
+    data = db.get_or_404(BlogPost, id)
+    
 # Below is the code from previous lessons. No changes needed.
 @main.route("/about")
 def about():

@@ -32,6 +32,7 @@
           Posted by
           <a href="#">{{post.author}}</a>
           on {{post.date}}
+          <a href="{{url_for('main.delet_post', post.id)}}">✘</a>
         </p>
       </div>
       <!-- Divider-->
