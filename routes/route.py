@@ -67,7 +67,9 @@ def edit_post(id):
 @main.route("/delete-post/<int:id>")
 def delete_post(id):
     data = db.get_or_404(BlogPost, id)
-    
+    db.session.delete(data)
+    db.session.commit()
+    return redirect('/')
 # Below is the code from previous lessons. No changes needed.
 @main.route("/about")
 def about():
