@@ -1,6 +1,7 @@
 from flask import Blueprint, request, redirect, render_template
-from models.db import db, BlogPost
-from forms.form import NewPost
+from models.db import db, BlogPost, User
+from forms.form import NewPost, NewUser, ExistingUser
+from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 
 
@@ -79,3 +80,25 @@ def about():
 @main.route("/contact")
 def contact():
     return render_template("contact.html")
+
+@main.route('/login')
+def login():
+    return render_template('login.html')
+
+@main.route('/register', methods=["GET", "POST"])
+def register():
+    register_form = NewUser()
+    if request.method == "POST":
+        new_user = User(
+           email = request.form.get('email'),
+           password = generate_password_hash(request.form.get('password'), salt_length=8, method='pbkdf2:sha256'),
+           name = request.form.get('name') 
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        
+    return render_template('register.html', form=register_form)
+
+@main.route('/logout')
+def logout():
+    return 'logout'
