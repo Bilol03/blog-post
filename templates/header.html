@@ -66,27 +66,30 @@
                 >Home</a
               >
             </li>
-            <li class="nav-item">
-              <a
-                class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{{ url_for('main.login') }}"
-                >Login</a
-              >
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{{ url_for('main.register') }}"
-                >Register</a
-              >
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{{ url_for('main.logout') }}"
-                >Log Out</a
-              >
-            </li>
+            {%if user_id%}
+              <li class="nav-item">
+                <a
+                  class="nav-link px-lg-3 py-3 py-lg-4"
+                  href="{{ url_for('main.logout') }}"
+                  >Log Out</a
+                >
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a
+                  class="nav-link px-lg-3 py-3 py-lg-4"
+                  href="{{ url_for('main.login') }}"
+                  >Login</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link px-lg-3 py-3 py-lg-4"
+                  href="{{ url_for('main.register') }}"
+                  >Register</a
+                >
+              </li>
+            {% endif %}
             <li class="nav-item">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"

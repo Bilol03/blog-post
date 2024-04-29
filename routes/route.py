@@ -1,16 +1,19 @@
-from flask import Blueprint, request, redirect, render_template
+from flask import Blueprint, request, redirect, url_for, render_template, flash, send_from_directory
 from models.db import db, BlogPost, User
 from forms.form import NewPost, NewUser, ExistingUser
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
-
+from flask_login import login_user, current_user, login_required, logout_user
 
 main = Blueprint("main", __name__)
 
 @main.route('/')
 def home():
     posts = db.session.execute(db.select(BlogPost)).scalars().all()
-    return render_template("index.html", all_posts=posts)
+    print(current_user)
+    if current_user.is_authenticated:
+        return render_template('index.html', all_posts=posts, user_id=current_user.id)
+    return render_template("index.html", all_posts=posts, user_id=None)
 
 # TODO: Add a route so that you can click on individual posts.
 @main.route('/post/<int:post_id>')
@@ -81,9 +84,6 @@ def about():
 def contact():
     return render_template("contact.html")
 
-@main.route('/login')
-def login():
-    return render_template('login.html')
 
 @main.route('/register', methods=["GET", "POST"])
 def register():
@@ -99,6 +99,27 @@ def register():
         
     return render_template('register.html', form=register_form)
 
+
+@main.route('/login', methods=["GET", "POST"])
+def login():
+    login_form = ExistingUser()
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get('password')
+        data = db.session.execute(db.select(User).where(User.email == email))
+        data = data.scalar()
+        if not data:
+            flash("This email doesn't exists, please sign up!")
+        elif check_password_hash(data.password, password):
+            login_user(data)
+            return redirect(url_for('main.home'))
+        else:
+            flash("Password is incorrect, please try again!")
+    return render_template('login.html', form=login_form)
+
+
 @main.route('/logout')
+@login_required
 def logout():
-    return 'logout'
+    logout_user()
+    return redirect(url_for('main.home'))
