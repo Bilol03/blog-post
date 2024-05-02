@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import Integer, String, Text, ForeignKey, Column
 from typing import List
 from flask_login import UserMixin
@@ -15,11 +15,13 @@ class User(UserMixin, db.Model):
     email: Mapped[str] = mapped_column(String, unique=True)
     password: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
-    blogs: Mapped[List['BlogPost']] = db.relationship()
+    posts = relationship("BlogPost", back_populates="author")
     
 class BlogPost(db.Model):
+    __tablename__ = 'blog_posts'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    author: Mapped[int] = Column(Integer, ForeignKey('user.id'))
+    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
+    author = relationship('User', back_populates="posts")
     title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
     date: Mapped[str] = mapped_column(String(250), nullable=False)

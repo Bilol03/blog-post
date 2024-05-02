@@ -1,11 +1,26 @@
-from flask import Blueprint, request, redirect, url_for, render_template, flash, send_from_directory
+from flask import Blueprint, request, redirect, url_for, render_template, flash, send_from_directory, abort
 from models.db import db, BlogPost, User
 from forms.form import NewPost, NewUser, ExistingUser
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 from flask_login import login_user, current_user, login_required, logout_user
+from functools import wraps
 
 main = Blueprint("main", __name__)
+
+def is_admin(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if current_user.is_authenticated:  
+            id = current_user.id
+            
+            if id != 1:
+                return abort(403)
+            return func(*args, **kwargs)
+        else:
+            return abort(401)
+            
+    return wrapper
 
 @main.route('/')
 def home():
@@ -25,6 +40,7 @@ def show_post(post_id):
 
 
 @main.route('/new-post', methods=['GET', 'POST'])
+@is_admin
 def make_post():
     blog_form = NewPost()
     
@@ -37,13 +53,13 @@ def make_post():
             subtitle = request.form.get("subtitle"),
             date = f"{month} {now.day}, {now.year}",
             body = request.form.get('body'), 
-            author = request.form.get('name'),
+            author_id = current_user.id,
             img_url = request.form.get('img_url')
         )
         db.session.add(new_data)
         db.session.commit()
         return redirect('/')
-    return render_template("make-post.html", forms=blog_form)
+    return render_template("make-post.html", forms=blog_form, user_id=current_user.id or None)
 # TODO: edit_post() to change an existing blog post
 @main.route('/edit-post/<int:id>', methods=["POST", "GET"])
 def edit_post(id):
@@ -69,6 +85,7 @@ def edit_post(id):
 
 # TODO: delete_post() to remove a blog post from the database
 @main.route("/delete-post/<int:id>")
+@is_admin
 def delete_post(id):
     data = db.get_or_404(BlogPost, id)
     db.session.delete(data)
@@ -94,8 +111,16 @@ def register():
            password = generate_password_hash(request.form.get('password'), salt_length=8, method='pbkdf2:sha256'),
            name = request.form.get('name') 
         )
-        db.session.add(new_user)
-        db.session.commit()
+        data = db.session.execute(db.select(User).where(User.email == request.form.get('email')))
+        data = data.scalar()
+        if data:
+            flash('This email already signed up, please login!')
+            return redirect(url_for('main.login'))
+        else:
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for('main.home'))
         
     return render_template('register.html', form=register_form)
 
