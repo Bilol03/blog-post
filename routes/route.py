@@ -1,6 +1,6 @@
-from flask import Blueprint, request, redirect, url_for, render_template, flash, send_from_directory, abort
-from models.db import db, BlogPost, User
-from forms.form import NewPost, NewUser, ExistingUser
+from flask import Blueprint, request, redirect, url_for, render_template, flash, send_from_directory, abort, session
+from models.db import db, BlogPost, User, CommentTable
+from forms.form import NewPost, NewUser, ExistingUser, Comments
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 from flask_login import login_user, current_user, login_required, logout_user
@@ -22,6 +22,7 @@ def is_admin(func):
             
     return wrapper
 
+
 @main.route('/')
 def home():
     posts = db.session.execute(db.select(BlogPost)).scalars().all()
@@ -31,12 +32,27 @@ def home():
     return render_template("index.html", all_posts=posts, user_id=None)
 
 # TODO: Add a route so that you can click on individual posts.
-@main.route('/post/<int:post_id>')
+@main.route('/post/<int:post_id>', methods=["GET", "POST"])
 def show_post(post_id):
     # TODO: Retrieve a BlogPost from the database based on the post_id
     
+    comments = Comments()
+    login_form = ExistingUser()
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            flash('You are not logged in! Please register or login to write a comment!')
+            return redirect('/login')
+        new_comment = CommentTable(
+            author_id = current_user.id,
+            post_id = post_id,
+            text = request.form.get('body')
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+        return redirect(f'/post/{post_id}')
     requested_post = db.get_or_404(BlogPost, post_id)
-    return render_template("post.html", post=requested_post)
+    
+    return render_template("post.html", post=requested_post, form=comments, user_id=current_user.id or None)
 
 
 @main.route('/new-post', methods=['GET', 'POST'])
@@ -61,6 +77,7 @@ def make_post():
         return redirect('/')
     return render_template("make-post.html", forms=blog_form, user_id=current_user.id or None)
 # TODO: edit_post() to change an existing blog post
+
 @main.route('/edit-post/<int:id>', methods=["POST", "GET"])
 def edit_post(id):
     data = db.get_or_404(BlogPost, id)
@@ -88,19 +105,21 @@ def edit_post(id):
 @is_admin
 def delete_post(id):
     data = db.get_or_404(BlogPost, id)
-    db.session.delete(data)
-    db.session.commit()
-    return redirect('/')
+    if data:
+        for comment in data.comments:
+            db.session.delete(comment)
+        db.session.delete(data)
+        db.session.commit()
+        return redirect('/')
 # Below is the code from previous lessons. No changes needed.
 @main.route("/about")
 def about():
     return render_template("about.html")
 
 
-@main.route("/contact")
+@main.route('/contact')
 def contact():
-    return render_template("contact.html")
-
+    return render_template('contact.html')
 
 @main.route('/register', methods=["GET", "POST"])
 def register():
@@ -147,4 +166,5 @@ def login():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     return redirect(url_for('main.home'))

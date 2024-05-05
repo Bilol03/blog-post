@@ -26,3 +26,8 @@ class ExistingUser(FlaskForm):
     
     submit = SubmitField(label="Submit")
     
+class Comments(FlaskForm):
+    body = CKEditorField("Comments", validators=[DataRequired()])
+    submit = SubmitField(label="Submit")
+    
+    

@@ -4,6 +4,7 @@ from flask import Flask
 from routes.route import main
 from flask_login import LoginManager
 from models.db import db, User
+from flask_gravatar import Gravatar
 
 app = Flask(__name__)
 app.register_blueprint(main)
@@ -24,9 +25,19 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 db.init_app(app)
 
 
+gravatar = Gravatar(app,
+                    size=100,
+                    rating='g',
+                    default='retro',
+                    force_default=False,
+                    force_lower=False,
+                    use_ssl=False,
+                    base_url=None)
+
+
 with app.app_context():
     db.create_all()
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=4200)
