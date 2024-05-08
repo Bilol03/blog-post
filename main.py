@@ -23,7 +23,7 @@ def load_user(user_id):
 Bootstrap5(app)
 CKEditor(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URI', 'sqlite:///posts.db')
 db.init_app(app)
 
 
