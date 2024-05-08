@@ -9,7 +9,6 @@ import os
 
 app = Flask(__name__)
 app.register_blueprint(main)
-print(os.environ.get('FLASK_KEY'))
 app.config['SECRET_KEY'] = os.environ.get('FLASK_KEY')
 
 login_manager = LoginManager()
