@@ -5,10 +5,12 @@ from routes.route import main
 from flask_login import LoginManager
 from models.db import db, User
 from flask_gravatar import Gravatar
+import os
 
 app = Flask(__name__)
 app.register_blueprint(main)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+print(os.environ.get('FLASK_KEY'))
+app.config['SECRET_KEY'] = os.environ.get('FLASK_KEY')
 
 login_manager = LoginManager()
 login_manager.init_app(app)

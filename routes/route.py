@@ -26,7 +26,6 @@ def is_admin(func):
 @main.route('/')
 def home():
     posts = db.session.execute(db.select(BlogPost)).scalars().all()
-    print(current_user)
     if current_user.is_authenticated:
         return render_template('index.html', all_posts=posts, user_id=current_user.id)
     return render_template("index.html", all_posts=posts, user_id=None)
