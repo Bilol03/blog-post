@@ -12,9 +12,9 @@ db = SQLAlchemy(model_class=Base)
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String, unique=True)
-    password: Mapped[str] = mapped_column(String(64))
-    name: Mapped[str] = mapped_column(String(64))
+    email: Mapped[str] = mapped_column(String(250), unique=True)
+    password: Mapped[str] = mapped_column(String(250))
+    name: Mapped[str] = mapped_column(String(250))
     comments = relationship('CommentTable', back_populates="author")
     posts = relationship("BlogPost", back_populates="author")
     

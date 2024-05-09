@@ -126,7 +126,7 @@ def register():
     if request.method == "POST":
         new_user = User(
            email = request.form.get('email'),
-           password = generate_password_hash(request.form.get('password'), salt_length=8, method='pbkdf2:sha256'),
+           password = generate_password_hash(request.form.get('password'), salt_length=6, method='pbkdf2:sha256'),
            name = request.form.get('name') 
         )
         data = db.session.execute(db.select(User).where(User.email == request.form.get('email')))
